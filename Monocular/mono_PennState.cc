@@ -37,6 +37,8 @@ using namespace std;
 void LoadImages(const string &strFile, vector<string> &vstrImageFilenames,
 				vector<double> &vTimestamps);
 
+void print_to_file_for_gt(double tframe, const cv::Mat &transl, ofstream &fileP, Eigen::Matrix<double, 3, 3> &rot_mat_e);
+
 int main(int argc, char **argv)
 {
 	if(argc != 4)
@@ -71,8 +73,8 @@ int main(int argc, char **argv)
 
 		ofstream fileTUM;
 		fileTUM.open(string(argv[3]) + "/CameraTrajectoryTUM.txt");
-		//ofstream fileP;
-		//fileP.open(string(argv[3]) + "/CameraTrajectoryP.txt");
+		ofstream fileP;
+		fileP.open(string(argv[3]) + "/CameraTrajectoryP.txt");
 		std::vector<Eigen::Quaterniond> quaternions;
 		std::vector<cv::Mat> translations;
 		bool failed_all_so_far = true;
@@ -131,7 +133,6 @@ int main(int argc, char **argv)
 			if(currentPose.empty()){
 				cout << "frame " << ni << " - fail" << endl;
 				count_failed++;
-				//cout << "pose failed" << endl;
 				if(!failed_all_so_far){
 					quaternions.push_back(quaternions[ni-1]);
 					translations.push_back(translations[ni-1]);
@@ -144,6 +145,7 @@ int main(int argc, char **argv)
 						cumul_rotation_e = last_rotation;
 						last_translation.copyTo(cumul_translation);
 					}
+					print_to_file_for_gt(tframe, last_translation, fileP, last_rotation);
 				}else{
 					Eigen::Quaterniond tmp(0,0,0,0);
 					quaternions.push_back(tmp);
@@ -155,10 +157,7 @@ int main(int argc, char **argv)
 				just_failed = true;
 				count_failed = 0;
 
-				//cout << currentPose << endl;
-
 				cv::Mat rot_mat = currentPose(cv::Range(0,3), cv::Range(0,3));
-				//cout << rot_mat << endl;
 
 				Eigen::Matrix<double,3,3> rot_mat_e;
 				cv2eigen(rot_mat, rot_mat_e);
@@ -170,18 +169,17 @@ int main(int argc, char **argv)
 
 				last_rotation = Eigen::Matrix<double,3,3>(rot_mat_e);
 
-
 				cv::Mat transl = currentPose.rowRange(0,3).col(3);
 				cv::transpose(transl, transl);
 				transl = transl + cumul_translation;
 				cout << "\t\t\t\t" << transl << endl;
 				transl.copyTo(last_translation);
 
-				//cout << transl << endl;
-
 				quaternions.push_back(q);
 				translations.push_back(transl);
-				//cout << transl.at<double>(0) << "" << endl;
+
+				// to print to file and compare against the PennCOSYVIO gt
+				print_to_file_for_gt(tframe, transl, fileP, rot_mat_e);
 			}
 			//cout << translations[ni] << endl;
 
@@ -205,7 +203,7 @@ int main(int argc, char **argv)
 		}
 
 		fileTUM.close();
-		//fileP.close();
+		fileP.close();
 		// SLAM.Shutdown();
 	}); // End the thread
 
@@ -240,6 +238,28 @@ int main(int argc, char **argv)
 	//SLAM.SaveTrajectoryTUM(string(argv[3]) + "/CameraTrajectory.txt");
 
 	return 0;
+}
+
+void print_to_file_for_gt(double tframe, const cv::Mat &transl, ofstream &fileP, Eigen::Matrix<double, 3, 3> &rot_mat_e) {
+	Eigen::Matrix<double,3,1> transl_e;
+	cv2eigen(transl, transl_e);
+	fileP << tframe << " ";
+	fileP << rot_mat_e(0,0) << " ";
+	fileP << rot_mat_e(0,1) << " ";
+	fileP << rot_mat_e(0,2) << " ";
+	fileP << transl_e(0) << " ";
+	fileP << rot_mat_e(1,0) << " ";
+	fileP << rot_mat_e(1,1) << " ";
+	fileP << rot_mat_e(1,2) << " ";
+	fileP << transl_e(1) << " ";
+	fileP << rot_mat_e(2,0) << " ";
+	fileP << rot_mat_e(2,1) << " ";
+	fileP << rot_mat_e(2,2) << " ";
+	fileP << transl_e(2) << " ";
+	fileP << 0.0 << " ";
+	fileP << 0.0 << " ";
+	fileP << 0.0 << " ";
+	fileP << 1.0 << endl;
 }
 
 void LoadImages(const string &strFile, vector<string> &vstrImageFilenames, vector<double> &vTimestamps)
