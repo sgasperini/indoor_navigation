@@ -11,7 +11,7 @@ MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
-set(ORB_SLAM2_LIBRARIES /Users/Steve/Libraries/ORB_SLAM2_MAC2)
+set(ORB_SLAM2_LIBRARIES /Users/Steve/Libraries/ORB_SLAM2_solidMONO)
 
 # Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
@@ -41,6 +41,7 @@ endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
+#find_library(REALSENSE2 realsense2 REQUIRED)
 
 include_directories(
 		${PROJECT_SOURCE_DIR}
@@ -62,6 +63,13 @@ include_directories(
 #		${ORB_SLAM2_LIBRARIES}/lib/libORB_SLAM2.dylib
 #)
 
+add_executable(Compass_gen
+		utils/generate_compass_data.cpp)
+target_link_libraries(Compass_gen
+		${OpenCV_LIBS}
+		${EIGEN3_LIBS}
+)
+
 add_executable(Mono_PennState
 		Monocular/mono_PennState.cc)
 target_link_libraries(Mono_PennState
@@ -70,5 +78,17 @@ target_link_libraries(Mono_PennState
 		${Pangolin_LIBRARIES}
 		${ORB_SLAM2_LIBRARIES}/Thirdparty/DBoW2/lib/libDBoW2.dylib
 		${ORB_SLAM2_LIBRARIES}/Thirdparty/g2o/lib/libg2o.dylib
+		${ORB_SLAM2_LIBRARIES}/lib/libORB_SLAM2_solidMONO.dylib
+)
+
+add_executable(Mono_RealSense
+		Monocular/mono_cam.cc)
+target_link_libraries(Mono_RealSense
+		${OpenCV_LIBS}
+		${EIGEN3_LIBS}
+		${Pangolin_LIBRARIES}
+		${ORB_SLAM2_LIBRARIES}/Thirdparty/DBoW2/lib/libDBoW2.dylib
+		${ORB_SLAM2_LIBRARIES}/Thirdparty/g2o/lib/libg2o.dylib
 		${ORB_SLAM2_LIBRARIES}/lib/libORB_SLAM2.dylib
+		#${REALSENSE2}
 )
