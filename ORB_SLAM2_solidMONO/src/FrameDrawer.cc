@@ -28,6 +28,10 @@
 
 namespace ORB_SLAM2
 {
+    int fontFace = cv::FONT_ITALIC;
+    double fontScale = 0.75;
+    int thickness_font = 2;
+    cv::Scalar blue(244,144,66);
 
 FrameDrawer::FrameDrawer(Map* pMap):mpMap(pMap)
 {
@@ -39,7 +43,7 @@ FrameDrawer::FrameDrawer(Map* pMap):mpMap(pMap)
     //cout << "loaded arrow_bg image with size " << arrow_bg.size() << endl;
 }
 
-cv::Mat FrameDrawer::DrawFrame(int angle)
+cv::Mat FrameDrawer::DrawFrame(bool draw_arrow, int angle, bool lost_status)
 {
     cv::Mat im;
     vector<cv::KeyPoint> vIniKeys; // Initialization: KeyPoints in reference frame
@@ -127,24 +131,32 @@ cv::Mat FrameDrawer::DrawFrame(int angle)
     DrawTextInfo(im,state, imWithInfo);
 
     return imWithInfo;*/
-    if(angle < 0){
-        angle = 360 + angle;
-    }
+    if(draw_arrow){
+        if(angle < 0){
+            angle = 360 + angle;
+        }
 
-    cv::Point2f pic_c(arrow_bg_or.cols/2., arrow_bg_or.rows/2.);
-    cv::Mat r = cv::getRotationMatrix2D(pic_c, int(angle), 1.0);
-    cv::warpAffine(arrow_bg_or, arrow_bg, r, arrow_bg_or.size());
+        cv::Point2f pic_c(arrow_bg_or.cols/2., arrow_bg_or.rows/2.);
+        cv::Mat r = cv::getRotationMatrix2D(pic_c, int(angle), 1.0);
+        cv::warpAffine(arrow_bg_or, arrow_bg, r, arrow_bg_or.size());
 
-    cv::Rect roi(584,128, 752, 480);
-    arrow_bg = arrow_bg(roi);
+        cv::Rect roi(584,128, 752, 480);
+        arrow_bg = arrow_bg(roi);
 
-    for(int y=0;y<arrow_bg.rows;y++) {
-        for (int x = 0; x < arrow_bg.cols; x++) {
-            cv::Vec3b color = arrow_bg.at<cv::Vec3b>(cv::Point(x, y));
-            if(color.val[0] + color.val[1] + color.val[2] > 0){
-                im.at<cv::Vec3b>(cv::Point(x, y)) = color;
+        for(int y=0;y<arrow_bg.rows;y++) {
+            for (int x = 0; x < arrow_bg.cols; x++) {
+                cv::Vec3b color = arrow_bg.at<cv::Vec3b>(cv::Point(x, y));
+                if(color.val[0] + color.val[1] + color.val[2] > 0){
+                    im.at<cv::Vec3b>(cv::Point(x, y)) = color;
+                }
             }
         }
+    }
+
+    if(lost_status){
+        cv::putText(im, "Lost", cv::Point(10,450), fontFace, fontScale, blue, thickness_font, 8);
+    }else{
+        cv::putText(im, "Tracking", cv::Point(10,450), fontFace, fontScale, blue, thickness_font, 8);
     }
 
     return im;

@@ -46,8 +46,7 @@ public:
     void Update(Tracking *pTracker);
 
     // Draw last processed frame.
-    //cv::Mat DrawFrame();
-    cv::Mat DrawFrame(int angle);
+    cv::Mat DrawFrame(bool drawArrow, int angle, bool status);
 
 protected:
 

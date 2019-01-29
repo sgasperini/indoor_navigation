@@ -56,7 +56,11 @@ public:
 
     void Release();
 
+    void DrawArrow(bool yes);
+
     void SetAngle(int a);
+
+    void SetLost(bool status);
 
 private:
 

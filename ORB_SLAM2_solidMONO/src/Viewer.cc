@@ -28,6 +28,8 @@ namespace ORB_SLAM2
 {
 
     int angle = -180;
+    bool lost_status = true;
+    bool draw_arrow = false;
 
 Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath):
     mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
@@ -138,7 +140,7 @@ void Viewer::Run()
 
         //pangolin::FinishFrame();
 
-        cv::Mat im = mpFrameDrawer->DrawFrame(angle);
+        cv::Mat im = mpFrameDrawer->DrawFrame(draw_arrow, angle, lost_status);
         //cv::Mat im_half;
         //cv::resize(im, im_half, cv::Size(), 0.5, 0.5);
         //cv::imshow("ORB-SLAM2: Current Frame",im_half);
@@ -182,6 +184,14 @@ void Viewer::Run()
 
 void Viewer::SetAngle(int a){
     angle = a;
+}
+
+void Viewer::SetLost(bool status){
+    lost_status = status;
+}
+
+void Viewer::DrawArrow(bool flag){
+    draw_arrow = flag;
 }
 
 void Viewer::RequestFinish()

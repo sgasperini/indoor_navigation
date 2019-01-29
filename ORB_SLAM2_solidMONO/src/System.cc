@@ -503,4 +503,16 @@ void System::SetAngle(int angle)
         mpViewer->SetAngle(angle);
 }
 
+void System::SetLost(bool status)
+{
+    if (mpViewer)
+        mpViewer->SetLost(status);
+}
+
+void System::DrawArrow(bool yes)
+{
+    if (mpViewer)
+        mpViewer->DrawArrow(yes);
+}
+
 } //namespace ORB_SLAM

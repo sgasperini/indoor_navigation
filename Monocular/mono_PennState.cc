@@ -159,6 +159,7 @@ int main(int argc, char **argv){
 
 			if (currentPose.empty()) {
 				cout << "frame " << ni << " - fail" << endl;
+				SLAM.SetLost(true);
 				count_failed++;
 				if (!failed_all_so_far) {
 					//quaternions.push_back(quaternions[ni - 1]);
@@ -194,6 +195,7 @@ int main(int argc, char **argv){
 				}
 			} else {
 				cout << "frame " << ni << " - success" /*<< " " << compass_offset*/ << endl;
+				SLAM.SetLost(false);
 				just_failed = true;
 				count_failed = 0;
 
@@ -227,8 +229,10 @@ int main(int argc, char **argv){
 				updateKalmanFilter(KF, measurements, translation_estimated, rotation_estimated);*/
 
 				if (failed_all_so_far) {
-					if (compass_available)
+					if (compass_available){
 						compass_offset = double(compass_reading - get_compass_angle_from_matrix(last_rotation));
+						SLAM.DrawArrow(true);
+					}
 					failed_all_so_far = false;
 				}
 
