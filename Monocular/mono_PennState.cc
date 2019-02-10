@@ -68,7 +68,8 @@ int main(int argc, char **argv){
 	int nMeasurements = 6;
 	int nInputs = 0;
 	double dt = 0.1;
-	initKalmanFilter(KF, nStates, nMeasurements, nInputs, dt);
+	int flag = 0;
+	initKalmanFilter(KF, nStates, nMeasurements, nInputs, dt, flag);
 	cv::Mat measurements(nMeasurements, 1, CV_64F);
 	measurements.setTo(cv::Scalar(0));
 
