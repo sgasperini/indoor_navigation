@@ -23,13 +23,18 @@ Camera.height: 800
 Camera.fps: 20.0
 
 # stereo baseline times fx
-Camera.bf: 47.90639384423901
+#Camera.bf: 47.90639384423901
+#Camera.bf: 25.9067357512953
+Camera.bf: 32.1354553
+#50mm
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
 Camera.RGB: 1
 
 # Close/Far threshold. Baseline times.
-ThDepth: 30
+#ThDepth: 30
+#ThDepth: 104
+ThDepth: 128.5418212
 
 #--------------------------------------------------------------------------------------------
 # Stereo Rectification. Only if you need to pre-rectify the images.
@@ -116,3 +121,7 @@ Viewer.ViewpointY: -100
 Viewer.ViewpointZ: -0.1
 Viewer.ViewpointF: 2000
 
+# --------------------------------------------------------------------------------------------
+# Activate IMU
+# --------------------------------------------------------------------------------------------
+activateIMU: 1
