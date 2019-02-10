@@ -2,18 +2,7 @@
 // Created by ritvik on 17.01.19.
 //
 
-#include<iostream>
-#include<algorithm>
-#include<fstream>
-#include<chrono>
-#include<unistd.h>
-
-#include<opencv2/core/core.hpp>
-
-#include<System.h>
-
-#include <Eigen/Dense>
-#include <opencv2/core/eigen.hpp>
+#include "Utils.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // MISCELLANEOUS UTILITY FUNCTIONS
@@ -23,90 +12,98 @@
 // FUNCTIONS FOR PHIDGET IMU
 // --------------------------------------------------------------------------------------------------------------------
 
-//// Used to display any error messages from the IMU during initialization
-//void DisplayPhidgetError(PhidgetReturnCode returnCode, char *message) {
-//    PhidgetReturnCode prc; //Used to catch error codes from each Phidget function call
-//    const char *error;
-//
-//    fprintf(stderr, "Runtime Error -> %s\n\t", message);
-//
-//    prc = Phidget_getErrorDescription(returnCode, &error);
-//    if (prc != EPHIDGET_OK) {
-//        DisplayPhidgetError(prc, "Getting ErrorDescription");
-//        return;
-//    }
-//
-//    fprintf(stderr, "Desc: %s\n", error);
-//
-//    if (returnCode == EPHIDGET_WRONGDEVICE) {
-//        fprintf(stderr,
-//                "\tThis error commonly occurs when the Phidget function you are calling does not match the class of the channel that called it.\n"
-//                "\tFor example, you would get this error if you called a PhidgetVoltageInput_* function with a PhidgetDigitalOutput channel.");
-//    } else if (returnCode == EPHIDGET_NOTATTACHED) {
-//        fprintf(stderr,
-//                "\tThis error occurs when you call Phidget functions before a Phidget channel has been opened and attached.\n"
-//                "\tTo prevent this error, ensure you are calling the function after the Phidget has been opened and the program has verified it is attached.\n");
-//    } else if (returnCode == EPHIDGET_NOTCONFIGURED) {
-//        fprintf(stderr,
-//                "\tThis error code commonly occurs when you call an Enable-type function before all Must-Set Parameters have been set for the channel.\n"
-//                "\tCheck the API page for your device to see which parameters are labled \"Must be Set\" on the right-hand side of the list.");
-//    }
-//}
-//
-//// Used to exit the program in case the IMU Initialization fails
-//void ExitPhidgetWithErrors(PhidgetHandle *chptr) {
-//    Phidget_delete(chptr);
-//    fprintf(stderr, "\nExiting with error(s)...\n");
-//    printf("Press ENTER to end program.\n");
-//    getchar();
-//    exit(1);
-//}
-//
-//// Used to check IMU errors during initialization phase
-//void CheckPhidgetError(PhidgetReturnCode returnCode, char *message, PhidgetHandle *chptr) {
-//
-//    if (returnCode != EPHIDGET_OK) {
-//        DisplayPhidgetError(returnCode, message);
-//        ExitPhidgetWithErrors(chptr);
-//    }
-//}
-//
-//// Used to check if the channel was opened properly or not in order to get the IMU readings
-//void CheckOpenError(PhidgetReturnCode e, PhidgetHandle *chptr) {
-//    PhidgetReturnCode prc; //Used to catch error codes from each Phidget function call
-//    Phidget_ChannelClass channelClass;
-//    int isRemote;
-//
-//    if (e == EPHIDGET_OK)
-//        return;
-//
-//    DisplayPhidgetError(e, "Opening Phidget Channel");
-//    if (e == EPHIDGET_TIMEOUT) {
-//        fprintf(stderr, "\nThis error commonly occurs if your device is not connected as specified, "
-//                        "or if another program is using the device, such as the Phidget Control Panel.\n\n"
-//                        "If your Phidget has a plug or terminal block for external power, ensure it is plugged in and powered.\n");
-//
-//        prc = Phidget_getChannelClass(*chptr, &channelClass);
-//        CheckPhidgetError(prc, "Getting ChannelClass", chptr);
-//
-//        if (channelClass != PHIDCHCLASS_VOLTAGEINPUT
-//            && channelClass != PHIDCHCLASS_VOLTAGERATIOINPUT
-//            && channelClass != PHIDCHCLASS_DIGITALINPUT
-//            && channelClass != PHIDCHCLASS_DIGITALOUTPUT) {
-//            fprintf(stderr, "\nIf you are trying to connect to an analog sensor, you will need to use the "
-//                            "corresponding VoltageInput or VoltageRatioInput API with the appropriate SensorType.\n");
-//        }
-//
-//        prc = Phidget_getIsRemote(*chptr, &isRemote);
-//        CheckPhidgetError(prc, "Getting IsRemote", chptr);
-//
-//        if (isRemote)
-//            fprintf(stderr,
-//                    "\nEnsure the Phidget Network Server is enabled on the machine the Phidget is plugged into.\n");
-//    }
-//
-//    ExitPhidgetWithErrors(chptr);
-//}
+// Check if the IMU should be used
+void checkIMU(const std::string &strSettingsPath, int activate){
+
+    cv::FileStorage fSettings(strSettingsPath, cv::FileStorage::READ);
+    activate = fSettings["activateIMU"];
+
+}
+
+// Used to display any error messages from the IMU during initialization
+void DisplayPhidgetError(PhidgetReturnCode returnCode, char *message) {
+    PhidgetReturnCode prc; //Used to catch error codes from each Phidget function call
+    const char *error;
+
+    fprintf(stderr, "Runtime Error -> %s\n\t", message);
+
+    prc = Phidget_getErrorDescription(returnCode, &error);
+    if (prc != EPHIDGET_OK) {
+        DisplayPhidgetError(prc, "Getting ErrorDescription");
+        return;
+    }
+
+    fprintf(stderr, "Desc: %s\n", error);
+
+    if (returnCode == EPHIDGET_WRONGDEVICE) {
+        fprintf(stderr,
+                "\tThis error commonly occurs when the Phidget function you are calling does not match the class of the channel that called it.\n"
+                "\tFor example, you would get this error if you called a PhidgetVoltageInput_* function with a PhidgetDigitalOutput channel.");
+    } else if (returnCode == EPHIDGET_NOTATTACHED) {
+        fprintf(stderr,
+                "\tThis error occurs when you call Phidget functions before a Phidget channel has been opened and attached.\n"
+                "\tTo prevent this error, ensure you are calling the function after the Phidget has been opened and the program has verified it is attached.\n");
+    } else if (returnCode == EPHIDGET_NOTCONFIGURED) {
+        fprintf(stderr,
+                "\tThis error code commonly occurs when you call an Enable-type function before all Must-Set Parameters have been set for the channel.\n"
+                "\tCheck the API page for your device to see which parameters are labled \"Must be Set\" on the right-hand side of the list.");
+    }
+}
+
+// Used to exit the program in case the IMU Initialization fails
+void ExitPhidgetWithErrors(PhidgetHandle *chptr) {
+    Phidget_delete(chptr);
+    fprintf(stderr, "\nExiting with error(s)...\n");
+    printf("Press ENTER to end program.\n");
+    getchar();
+    exit(1);
+}
+
+// Used to check IMU errors during initialization phase
+void CheckPhidgetError(PhidgetReturnCode returnCode, char *message, PhidgetHandle *chptr) {
+
+    if (returnCode != EPHIDGET_OK) {
+        DisplayPhidgetError(returnCode, message);
+        ExitPhidgetWithErrors(chptr);
+    }
+}
+
+// Used to check if the channel was opened properly or not in order to get the IMU readings
+void CheckOpenError(PhidgetReturnCode e, PhidgetHandle *chptr) {
+    PhidgetReturnCode prc; //Used to catch error codes from each Phidget function call
+    Phidget_ChannelClass channelClass;
+    int isRemote;
+
+    if (e == EPHIDGET_OK)
+        return;
+
+    DisplayPhidgetError(e, "Opening Phidget Channel");
+    if (e == EPHIDGET_TIMEOUT) {
+        fprintf(stderr, "\nThis error commonly occurs if your device is not connected as specified, "
+                        "or if another program is using the device, such as the Phidget Control Panel.\n\n"
+                        "If your Phidget has a plug or terminal block for external power, ensure it is plugged in and powered.\n");
+
+        prc = Phidget_getChannelClass(*chptr, &channelClass);
+        CheckPhidgetError(prc, "Getting ChannelClass", chptr);
+
+        if (channelClass != PHIDCHCLASS_VOLTAGEINPUT
+            && channelClass != PHIDCHCLASS_VOLTAGERATIOINPUT
+            && channelClass != PHIDCHCLASS_DIGITALINPUT
+            && channelClass != PHIDCHCLASS_DIGITALOUTPUT) {
+            fprintf(stderr, "\nIf you are trying to connect to an analog sensor, you will need to use the "
+                            "corresponding VoltageInput or VoltageRatioInput API with the appropriate SensorType.\n");
+        }
+
+        prc = Phidget_getIsRemote(*chptr, &isRemote);
+        CheckPhidgetError(prc, "Getting IsRemote", chptr);
+
+        if (isRemote)
+            fprintf(stderr,
+                    "\nEnsure the Phidget Network Server is enabled on the machine the Phidget is plugged into.\n");
+    }
+
+    ExitPhidgetWithErrors(chptr);
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 // FUNCTIONS FOR CALCULATIONS
@@ -208,9 +205,9 @@ cv::Mat euler2rot(const cv::Mat &euler) {
 }
 
 std::string FloatToString ( float Number ) {
-	std::ostringstream ss;
-	ss << int(Number);
-	return ss.str();
+       std::ostringstream ss;
+       ss << int(Number);
+       return ss.str();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -218,10 +215,17 @@ std::string FloatToString ( float Number ) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // Initialize the Kalman Filter
-void initKalmanFilter(cv::KalmanFilter &KF, int nStates, int nMeasurements, int nInputs, double dt) {
+void initKalmanFilter(cv::KalmanFilter &KF, int nStates, int nMeasurements, int nInputs, double dt, int flag) {
     KF.init(nStates, nMeasurements, nInputs, CV_64F);                 // init Kalman Filter
-    cv::setIdentity(KF.processNoiseCov, cv::Scalar::all(1e-7));       // set process noise
-    cv::setIdentity(KF.measurementNoiseCov, cv::Scalar::all(0.05));   // set measurement noise
+    if(flag == 1){
+        // This is used for the real time device with the camera and the IMU
+        cv::setIdentity(KF.processNoiseCov, cv::Scalar::all(1e-5));       // set process noise
+        cv::setIdentity(KF.measurementNoiseCov, cv::Scalar::all(1e-4));   // set measurement noise
+    } else{
+        // This is used on the PennState data for the compass
+        cv::setIdentity(KF.processNoiseCov, cv::Scalar::all(1e-7));       // set process noise
+        cv::setIdentity(KF.measurementNoiseCov, cv::Scalar::all(0.05));   // set measurement noise
+    }
     cv::setIdentity(KF.errorCovPost, cv::Scalar::all(1));             // error covariance
     /* DYNAMIC MODEL */
     //  [1 0 0 dt  0  0 dt2   0   0 0 0 0  0  0  0   0   0   0]
@@ -293,9 +297,9 @@ void fillMeasurements(cv::Mat &measurements,
 }
 
 void fillMeasurementsPennState(cv::Mat &measurements,
-							   const cv::Mat &translation_measured, const cv::Mat &rotation_measured) {
-	fillMeasurements(measurements, translation_measured, rotation_measured);
-	measurements.at<double>(4) = -1.0 * measurements.at<double>(4);  // reverts again pitch
+        const cv::Mat &translation_measured, const cv::Mat &rotation_measured) {
+    fillMeasurements(measurements, translation_measured, rotation_measured);
+    measurements.at<double>(4) = -1.0 * measurements.at<double>(4);  // reverts again pitch
 }
 
 // Update the Kalman Filter
@@ -303,9 +307,11 @@ void updateKalmanFilter(cv::KalmanFilter &KF, cv::Mat &measurement,
                         cv::Mat &translation_estimated, cv::Mat &rotation_estimated) {
     // First predict, to update the internal statePre variable
     cv::Mat prediction = KF.predict();
+    // std::cout << "Prediction: " << prediction.at<double>(0) << " " << prediction.at<double>(1) << " " << prediction.at<double>(2) << std::endl;
 
     // The "correct" phase that is going to use the predicted value and our measurement
     cv::Mat estimated = KF.correct(measurement);
+    // std::cout << "Estimation: " << estimated.at<double>(0) << " " << estimated.at<double>(1) << " " << estimated.at<double>(2) << std::endl;
 
     // Estimated translation
     translation_estimated.at<double>(0) = estimated.at<double>(0);
@@ -350,7 +356,7 @@ void getCurrentOpenGLCameraMatrix(cv::Mat Rwc, cv::Mat twc, pangolin::OpenGlMatr
 
 // Draw the current camera
 void drawCurrentCamera(pangolin::OpenGlMatrix &Twc) {
-    const float &w = 0.2;
+    const float &w = 0.1;
     const float h = w * 1.5;
     const float z = w;
 
@@ -363,31 +369,30 @@ void drawCurrentCamera(pangolin::OpenGlMatrix &Twc) {
 #endif
 
     glLineWidth(1);
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glBegin(GL_LINES);
-    glVertex3f(0, 0, 0);
-    glVertex3f(w, h, z);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(0, 0, 0);
-    glVertex3f(w, -h, z);
-    glVertex3f(0, 0, 0);
-    glVertex3f(-w, -h, z);
-    glVertex3f(0, 0, 0);
-    glVertex3f(-w, h, z);
-
-    glVertex3f(w, h, z);
-    glVertex3f(w, -h, z);
-
     glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-w, h, z);
-    glVertex3f(-w, -h, z);
+    glBegin(GL_LINES);
 
-    glVertex3f(-w, h, z);
-    glVertex3f(w, h, z);
+    glVertex3f(Twc.m[12], Twc.m[13], Twc.m[14]);
+    glVertex3f((Twc.m[12]+w), (Twc.m[13]+h), (Twc.m[14]+z));
+    glVertex3f(Twc.m[12], Twc.m[13], Twc.m[14]);
+    glVertex3f((Twc.m[12]+w), (Twc.m[13]-h), (Twc.m[14]+z));
+    glVertex3f(Twc.m[12], Twc.m[13], Twc.m[14]);
+    glVertex3f((Twc.m[12]-w), (Twc.m[13]-h), (Twc.m[14]+z));
+    glVertex3f(Twc.m[12], Twc.m[13], Twc.m[14]);
+    glVertex3f((Twc.m[12]-w), (Twc.m[13]+h), (Twc.m[14]+z));
 
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(-w, -h, z);
-    glVertex3f(w, -h, z);
+    glVertex3f((Twc.m[12]+w), (Twc.m[13]+h), (Twc.m[14]+z));
+    glVertex3f((Twc.m[12]+w), (Twc.m[13]-h), (Twc.m[14]+z));
+
+    glVertex3f((Twc.m[12]-w), (Twc.m[13]+h), (Twc.m[14]+z));
+    glVertex3f((Twc.m[12]-w), (Twc.m[13]-h), (Twc.m[14]+z));
+
+    glVertex3f((Twc.m[12]-w), (Twc.m[13]+h), (Twc.m[14]+z));
+    glVertex3f((Twc.m[12]+w), (Twc.m[13]+h), (Twc.m[14]+z));
+
+    glVertex3f((Twc.m[12]-w), (Twc.m[13]-h), (Twc.m[14]+z));
+    glVertex3f((Twc.m[12]+w), (Twc.m[13]-h), (Twc.m[14]+z));
+
     glEnd();
 
     glPopMatrix();
@@ -422,30 +427,189 @@ void cameraParameters(const std::string &strSettingsPath, cv::Mat &cameraMatrix,
     float cx = fSettings["Camera.cx"];
     float cy = fSettings["Camera.cy"];
 
+    cv::Mat K = cv::Mat::eye(3,3,CV_32F);
+    K.at<float>(0,0) = fx;
+    K.at<float>(1,1) = fy;
+    K.at<float>(0,2) = cx;
+    K.at<float>(1,2) = cy;
+    K.copyTo(cameraMatrix);
+
     cv::Mat DistCoef(5,1,CV_32F);
     DistCoef.at<float>(0) = fSettings["Camera.k1"];
     DistCoef.at<float>(1) = fSettings["Camera.k2"];
     DistCoef.at<float>(2) = fSettings["Camera.p1"];
     DistCoef.at<float>(3) = fSettings["Camera.p2"];
     DistCoef.at<float>(4) = fSettings["Camera.k3"];
+    DistCoef.copyTo(distortionCoeffs);
+
 }
 
 
-//void detectMarkers(cv::Mat &frame, float markerLength, const cv::Mat &cameraMatrix, const cv::Mat &distortionCoeffs,
-//        std::vector<int> &ids, std::vector<std::vector<cv::Point2f> > &corners,
-//        std::vector<cv::Vec3d> &rotationVectors, std::vector<cv::Vec3d> &translationVectors){
-//
-//    // Aruco Dictionary
-//    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-//
-//    cv::aruco::detectMarkers(frame, dictionary, corners, ids);
-//
-//    if(ids.size() > 0){
-//        cv::aruco::estimatePoseSingleMarkers(corners, markerLength, cameraMatrix,
-//                distortionCoeffs, rotationVectors, translationVectors);
-//    }
-//
-//}
+void detectArucoMarkers(cv::Mat &frame, float markerLength, const cv::Mat &cameraMatrix, const cv::Mat &distortionCoeffs,
+        std::vector<int> &ids, std::vector<std::vector<cv::Point2f> > &corners,
+        std::vector<cv::Vec3d> &rotationVectors, std::vector<cv::Vec3d> &translationVectors){
 
+    // Aruco Dictionary
+    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 
+    cv::aruco::detectMarkers(frame, dictionary, corners, ids);
 
+    if(ids.size() > 0){
+        cv::aruco::estimatePoseSingleMarkers(corners, markerLength, cameraMatrix,
+                distortionCoeffs, rotationVectors, translationVectors);
+    }
+
+}
+
+// Use the 3d position of the Camera with respec to the Aruco Marker
+// and calculate its position in the world coordinates
+void calculatePositions(cv::Vec3d &trCamAruco, cv::Mat &rotCamWorldSpace, 
+        cv::Mat &trCamWorldSpace, cv::Mat &cameraMatrix, cv::Mat &trArucoWorld){
+
+    // Converting the input matrices and vectors from CV to Eigen
+    Eigen::Vector3d arucoTrVecEigen;
+    arucoTrVecEigen.x() = trCamAruco[0];
+    arucoTrVecEigen.y() = trCamAruco[1];
+    arucoTrVecEigen.z() = trCamAruco[2];
+    // std::cout << "arucoTrVecEigen: " << arucoTrVecEigen << std::endl;
+
+    Eigen::Matrix<double, 3, 3> rotCamWorldSpaceEigen;
+    cv2eigen(rotCamWorldSpace, rotCamWorldSpaceEigen);
+    // std::cout << "rotCamWorldSpaceEigen: " << rotCamWorldSpaceEigen << std::endl;
+
+    Eigen::Vector3d trCamWorldSpaceEigen;
+    trCamWorldSpaceEigen.x() = trCamWorldSpace.at<float>(0,0);
+    trCamWorldSpaceEigen.y() = trCamWorldSpace.at<float>(1,0);
+    trCamWorldSpaceEigen.z() = trCamWorldSpace.at<float>(2,0);
+    // std::cout << "trCamWorldSpaceEigen: " << trCamWorldSpaceEigen << std::endl;
+
+    Eigen::Matrix<double, 3, 3> cameraMatrixEigen;
+    cv2eigen(cameraMatrix, cameraMatrixEigen);
+
+    // Initializing a vector to store the intermediate calculation steps
+    Eigen::Vector3d calculationsVector;
+    
+    // Invert the camera matrix
+    Eigen::Matrix3d cameraInv = cameraMatrixEigen.inverse();
+
+    calculationsVector = (cameraInv * arucoTrVecEigen);
+    calculationsVector = (rotCamWorldSpaceEigen * calculationsVector) + trCamWorldSpaceEigen;
+    // calculationsVector = (rotCamWorldSpaceEigen * arucoTrVecEigen) + trCamWorldSpaceEigen;
+
+    trArucoWorld.at<float>(0,0) = calculationsVector.x();
+    trArucoWorld.at<float>(1,0) = calculationsVector.y();
+    trArucoWorld.at<float>(2,0) = calculationsVector.z();
+
+    // std::cout << calculationsVector << std::endl;
+}
+
+// Calculate Camera World Coordinates
+void calculateWorldCamera(cv::Mat &cameraMatrix, cv::Mat &rotCamWorldSpace, cv::Mat &trCamWorldSpace, cv::Mat &trWorldCam){
+
+    Eigen::Matrix<double, 3, 3> cameraMatrixEigen;
+    cv2eigen(cameraMatrix, cameraMatrixEigen);
+    
+    // Invert the camera matrix
+    Eigen::Matrix3d cameraInv = cameraMatrixEigen.inverse();
+
+    Eigen::Matrix<double, 3, 3> rotCamWorldSpaceEigen;
+    cv2eigen(rotCamWorldSpace, rotCamWorldSpaceEigen);
+    // std::cout << "rotCamWorldSpaceEigen: " << rotCamWorldSpaceEigen << std::endl;
+
+    Eigen::Vector3d trCamWorldSpaceEigen;
+    trCamWorldSpaceEigen.x() = trCamWorldSpace.at<float>(0,0);
+    trCamWorldSpaceEigen.y() = trCamWorldSpace.at<float>(1,0);
+    trCamWorldSpaceEigen.z() = trCamWorldSpace.at<float>(2,0);
+    // std::cout << "trCamWorldSpaceEigen: " << trCamWorldSpaceEigen << std::endl;
+    
+    // Initializing a vector to store the intermediate calculation steps
+    Eigen::Vector3d calculationsVector;
+    // calculationsVector = rotCamWorldSpaceEigen * trCamWorldSpaceEigen;
+    calculationsVector = cameraInv * trCamWorldSpaceEigen;
+    // std::cout << calculationsVector.x() << "   " << calculationsVector.y() << "   " << calculationsVector.z() << std::endl;
+
+    trWorldCam.at<float>(0,0) = calculationsVector.x();
+    trWorldCam.at<float>(1,0) = calculationsVector.y();
+    trWorldCam.at<float>(2,0) = calculationsVector.z();
+
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// FUNCTIONS FOR DRAWING ARROW
+// --------------------------------------------------------------------------------------------------------------------
+
+// Calculate the angle for the object
+float calculateAngle(cv::Mat &cameraMatrix, cv::Mat &rotCamWorldSpace, cv::Mat &trCamWorldSpace, 
+        cv::Mat &markerPosition){
+
+    Eigen::Matrix<double, 3, 3> cameraMatrixEigen;
+    cv2eigen(cameraMatrix, cameraMatrixEigen);
+
+    // Invert the camera matrix
+    Eigen::Matrix3d cameraInv = cameraMatrixEigen.inverse();
+
+    Eigen::Matrix<double, 3, 3> rotCamWorldSpaceEigen;
+    cv2eigen(rotCamWorldSpace, rotCamWorldSpaceEigen);
+
+    Eigen::Vector3d trCamWorldSpaceEigen;
+    trCamWorldSpaceEigen.x() = trCamWorldSpace.at<float>(0,0);
+    trCamWorldSpaceEigen.y() = trCamWorldSpace.at<float>(1,0);
+    trCamWorldSpaceEigen.z() = trCamWorldSpace.at<float>(2,0);
+
+    //Normal Vector to the camera
+    Eigen::Vector3d camNormal;
+    camNormal.x() = 0;
+    camNormal.y() = 0;
+    camNormal.z() = 1;
+
+    //Translate the normal vector to the world space
+    camNormal = (cameraInv * camNormal);
+    camNormal = (rotCamWorldSpaceEigen * camNormal) + trCamWorldSpaceEigen;
+
+    // Calculate the vector between the camera and the object
+    Eigen::Vector3d markerPositionEigen;
+    markerPositionEigen.x() = markerPosition.at<float>(0,0);
+    markerPositionEigen.y() = markerPosition.at<float>(1,0);
+    markerPositionEigen.z() = markerPosition.at<float>(2,0);
+
+    Eigen::Vector3d camObject;
+    camObject = camNormal - markerPositionEigen;
+
+    // Calculate the angle
+    float angle = acos(camObject.dot(camNormal)/(camObject.norm() * camNormal.norm()));
+    Eigen::Vector3d crossP = camNormal.cross(camObject);
+    // std::cout << "crossP: " << crossP << std::endl; 
+    // Eigen::Vector3d n = crossP / crossP.norm();
+    // float angle = atan2(n.dot(crossP), camNormal.dot(camObject));
+    // float angle = atan2((camNormal.cross(camObject)).norm(), camNormal.dot(camObject));
+    // float dot = (camNormal.x() * camObject.x()) + (camNormal.y() * camObject.y()) + (camNormal.z() * camObject.z());
+    // float det = (camNormal.x() * camObject.y() * crossP.z()) + (camObject.x() * crossP.y() * camNormal.z());
+    // det = det + (crossP.x() * camNormal.y() * camObject.z()) - (camNormal.z() * camObject.y() * crossP.x());
+    // det = det - (camObject.z() * crossP.y() * camNormal.x()) - (crossP.z() * camNormal.y() * camObject.x());
+    // float angle = atan2(det, dot);
+    angle = angle * 180 / M_PI;
+    angle = angle * 4.5;
+    if(crossP.y() > 0){
+        angle = -1.0 * angle;
+    }
+    // std::cout << "calculateAngle: " << angle << std::endl;
+
+    return angle;
+
+}
+
+// Insert arrow into Image
+void insertArrow(cv::Mat &sourceImage, cv::Mat &arrow, cv::Mat &arrowBgOr, int angle, cv::Mat &destImage){
+    if(angle < 0){
+            angle = 360 + angle;
+    }
+    cv::Point2f pic_c(arrowBgOr.cols/2., arrowBgOr.rows/2.);
+    cv::Mat r = cv::getRotationMatrix2D(pic_c, int(angle), 1.0);
+    cv::warpAffine(arrowBgOr, arrow, r, arrowBgOr.size());
+    cv::Rect roi(0,0,80,80);
+    cv::resize(arrow, arrow, cv::Size(80, 80), 0, 0);
+    cv::Mat insetImage;
+    insetImage = sourceImage(roi);
+    arrow.copyTo(insetImage);
+    destImage = sourceImage;
+}
